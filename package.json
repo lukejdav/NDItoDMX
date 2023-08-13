@@ -1,0 +1,22 @@
+{
+  "name": "nditodmx",
+  "version": "1.0.0",
+  "description": "Converting video streams into useful DMX data",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukejdav/NDItoDMX.git"
+  },
+  "author": "Luke Davies",
+  "license": "UNLICENCED",
+  "bugs": {
+    "url": "https://github.com/lukejdav/NDItoDMX/issues"
+  },
+  "homepage": "https://github.com/lukejdav/NDItoDMX#readme",
+  "dependencies": {
+    "grandios": "github:streampunk/grandiose"
+  }
+}

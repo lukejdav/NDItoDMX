@@ -7,23 +7,23 @@
 const fs = require("fs")
 const PNG = require("pngjs").PNG
 
-const data = fs.readFileSync('./test_images/red.png')
+const data = fs.readFileSync('./test_images/test.png')
 const png = PNG.sync.read(data)
 
 function areaAverage(startX, endX, startY, endY) {
-	if(startX = -1) {
+	if(startX == -1) {
 		startX = 0
 	}
-	if(endX = -1) {
+	if(endX == -1) {
 		endX = png.width - 1
 	}
-	if(startY = -1) {
+	if(startY == -1) {
 		startY = 0
 	}
-	if(endY = -1) {
+	if(endY == -1) {
 		endY = png.height - 1
 	}
-
+	console.log(startX, endX, startY,  endY)
 	if(startX >= png.width || endX >= png.width || startY >= png.height || endY >= png.height) {
 		throw new Error("Area value overflow")
 	}
@@ -56,6 +56,10 @@ function areaAverage(startX, endX, startY, endY) {
 
 }
 
-const [red, green, blue] = areaAverage(-1, -1, -1, -1)
+let [a, b, c] = areaAverage(-1, -1, -1, -1)
 
-console.log(`Average is: ${red}, ${green}, ${blue}`)
+console.log(`Average is: ${a}, ${b}, ${c}`)
+
+let [d, e, f] = areaAverage(200, 600, 240, 260)
+
+console.log(`Average is: ${d}, ${e}, ${f}`)

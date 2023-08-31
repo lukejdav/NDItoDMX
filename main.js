@@ -19,7 +19,7 @@ async function getFrame() {
 		finder.getCurrentSources()
 	}, 1000)
 
-	let source = finder.getCurrentSources()[1]
+	let source = finder.getCurrentSources()[0]
 
 	const receiver = await grandiose.receive({
 		source: source,
@@ -29,7 +29,7 @@ async function getFrame() {
 		name: "main"
 	}, );
 
-	// console.log(receiver)
+	console.log(receiver)
 
 	let timeout = 5000;
 	try {

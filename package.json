@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/lukejdav/NDItoDMX#readme",
   "dependencies": {
-    "grandiose": "https://github.com/streampunk/grandiose/tarball/master",
+    "grandiose": "https://github.com/streampunk/grandiose/tarball/c350e0fb6e74bbf2e4b10144fee456aa1af93f47",
     "pngjs": "^7.0.0"
   }
 }

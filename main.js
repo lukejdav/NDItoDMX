@@ -8,18 +8,15 @@ function getImage() {
 	return png
 }
 
-// doesn't return a frame, only tries to log video frame
+// // doesn't return a frame, only tries to log video frame
 async function getFrame() {
-	const grandiose = require("grandiose")
-	const { GrandioseFinder } = grandiose
+	const grandiose = require('grandiose');
 
-	const finder = new GrandioseFinder()
+	const finder = new grandiose.GrandioseFinder()
 
-	setTimeout(() => {
-		finder.getCurrentSources()
-	}, 1000)
+	await new Promise(resolve => setTimeout(resolve, 1000))
 
-	let source = finder.getCurrentSources()[0]
+	let source = finder.getCurrentSources()[1]
 
 	const receiver = await grandiose.receive({
 		source: source,
@@ -29,14 +26,19 @@ async function getFrame() {
 		name: "main"
 	}, );
 
-	console.log(receiver)
-
 	let timeout = 5000;
+
+	// Hacky fix
+	await receiver.video(timeout).catch(()=>null)
+
 	try {
-		for ( let x = 0 ; x < 10 ; x++) {
-			let videoFrame = await receiver.video(timeout);
-			console.log(videoFrame);
-		}
+		let videoFrame = await receiver.video(timeout);
+		const myFrame = ({
+			width: videoFrame.xres,
+			height: videoFrame.yres,
+			data: videoFrame.data
+		})
+		return myFrame
 	} catch (e) { console.error(e); }
 }
 
@@ -54,7 +56,7 @@ function areaAverage(startX, endX, startY, endY, frame) {
 	if(endY == -1) {
 		endY = frame.height - 1
 	}
-	console.log(startX, endX, startY,  endY)
+	console.log(startX, endX, startY, endY)
 	if(startX >= frame.width || endX >= frame.width || startY >= frame.height || endY >= frame.height) {
 		throw new Error("Area value overflow")
 	}
@@ -91,8 +93,9 @@ let [a, b, c] = areaAverage(-1, -1, -1, -1, getImage())
 
 console.log(`Average is: ${a}, ${b}, ${c}`)
 
-getFrame()
 
-// let [d, e, f] = areaAverage(-1, -1, -1, -1, getFrame())
+getFrame().then(myFrame => {
+	let [d, e, f] = areaAverage(-1, -1, -1, -1, myFrame)
 
-// console.log(`Average is: ${d}, ${e}, ${f}`)
+	console.log(`Average is: ${d}, ${e}, ${f}`)
+})

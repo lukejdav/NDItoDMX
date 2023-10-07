@@ -8,15 +8,28 @@ function getImage() {
 	return png
 }
 
-// // doesn't return a frame, only tries to log video frame
-async function getFrame() {
+// shows a list of avaliable streams and an index
+async function getNDIStreams() {
+	const grandiose = require('grandiose');
+
+	const finder = new grandiose.GrandioseFinder()
+
+	setTimeout(() => {
+		const sources = finder.getCurrentSources()
+		for(let i=0; i < sources.length; i++) {
+			console.log(i +": "+ sources[i].name)
+		}
+	}, 1000)
+}
+
+async function getReceiver(input) {
 	const grandiose = require('grandiose');
 
 	const finder = new grandiose.GrandioseFinder()
 
 	await new Promise(resolve => setTimeout(resolve, 1000))
 
-	let source = finder.getCurrentSources()[1]
+	let source = finder.getCurrentSources()[input]
 
 	const receiver = await grandiose.receive({
 		source: source,
@@ -26,10 +39,18 @@ async function getFrame() {
 		name: "main"
 	}, );
 
-	let timeout = 5000;
+	let timeout = 1000;
 
 	// Hacky fix
 	await receiver.video(timeout).catch(()=>null)
+
+	return receiver
+}
+
+// get a single frame from the slected NDI stream
+async function getFrame(receiver) {
+
+	let timeout = 1000;
 
 	try {
 		let videoFrame = await receiver.video(timeout);
@@ -42,7 +63,8 @@ async function getFrame() {
 	} catch (e) { console.error(e); }
 }
 
-// needs changing to work for video frames, currently only works for images
+
+// takes a data frame of RGB vales, and width and height of frame
 function areaAverage(startX, endX, startY, endY, frame) {
 	if(startX == -1) {
 		startX = 0
@@ -56,7 +78,7 @@ function areaAverage(startX, endX, startY, endY, frame) {
 	if(endY == -1) {
 		endY = frame.height - 1
 	}
-	console.log(startX, endX, startY, endY)
+	// console.log(startX, endX, startY, endY)
 	if(startX >= frame.width || endX >= frame.width || startY >= frame.height || endY >= frame.height) {
 		throw new Error("Area value overflow")
 	}
@@ -89,13 +111,23 @@ function areaAverage(startX, endX, startY, endY, frame) {
 
 }
 
-let [a, b, c] = areaAverage(-1, -1, -1, -1, getImage())
+// let [a, b, c] = areaAverage(-1, -1, -1, -1, getImage())
 
-console.log(`Average is: ${a}, ${b}, ${c}`)
+// console.log(`Average is: ${a}, ${b}, ${c}`)
 
 
-getFrame().then(myFrame => {
-	let [d, e, f] = areaAverage(-1, -1, -1, -1, myFrame)
+;(async () => {
+	getNDIStreams()
 
-	console.log(`Average is: ${d}, ${e}, ${f}`)
-})
+	const receiver = await getReceiver(1)
+	
+	while (true){
+		await getFrame(receiver).then(myFrame => {
+			if(myFrame) {
+				let [d, e, f] = areaAverage(-1, -1, -1, -1, myFrame)
+		
+				console.log(`Average is: ${d}, ${e}, ${f}`)
+			}
+		})
+	}
+})()

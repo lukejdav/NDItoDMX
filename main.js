@@ -124,7 +124,7 @@ function areaAverage(startX, endX, startY, endY, frame) {
 	while (true){
 		await getFrame(receiver).then(myFrame => {
 			if(myFrame) {
-				let [d, e, f] = areaAverage(-1, -1, -1, -1, myFrame)
+				let [d, e, f] = areaAverage(220, 230, 220, 230, myFrame)
 		
 				console.log(`Average is: ${d}, ${e}, ${f}`)
 			}

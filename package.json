@@ -17,7 +17,11 @@
   },
   "homepage": "https://github.com/lukejdav/NDItoDMX#readme",
   "dependencies": {
+    "body-parser": "^1.20.2",
+    "bootstrap": "^5.3.2",
+    "express": "^4.18.2",
     "grandiose": "https://github.com/streampunk/grandiose/tarball/c350e0fb6e74bbf2e4b10144fee456aa1af93f47",
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "react-bootstrap": "^2.9.1"
   }
 }

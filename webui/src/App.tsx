@@ -84,7 +84,14 @@ function NDIblock() {
 
 		context.beginPath()
 		context.rect(rectangle.x0/scale, rectangle.y0/scale, (rectangle.x1-rectangle.x0)/scale, (rectangle.y1-rectangle.y0)/scale)
-		context.strokeStyle = '#FFFF00'
+		context.strokeStyle = 'RGBA(255,255,0,255)'
+		context.lineWidth = 2
+		context.stroke()
+
+		context.beginPath()
+		context.rect(rectangle.x0/scale-2, rectangle.y0/scale-2, (rectangle.x1-rectangle.x0)/scale+4, (rectangle.y1-rectangle.y0)/scale+4)
+		context.strokeStyle = 'RGBA(255,0,255,255)'
+		context.lineWidth = 2
 		context.stroke()
 
 	}, [rectangle, NDIframe])

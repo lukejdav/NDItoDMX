@@ -62,6 +62,13 @@ function NDIblock() {
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
+	const rgbToHex = (red:any, green:any, blue:any) => {
+		const redHex = ('00' + red.toString(16).toUpperCase()).slice(-2)
+		const greenHex = ('00' + green.toString(16).toUpperCase()).slice(-2)
+		const blueHex = ('00' + blue.toString(16).toUpperCase()).slice(-2)
+		return('#' + redHex + greenHex + blueHex)
+	}
+
 	useEffect(() => {
 		const canvas = canvasRef.current
 		if (canvas === null) {
@@ -117,8 +124,6 @@ function NDIblock() {
 		})
 	}, 2000)
 
-
-
 	return (
 		<div className="NDIcontainer">
 
@@ -170,10 +175,14 @@ function NDIblock() {
 				<button onClick={() => rectangleReset()}>
 					Reset Rectangle
 				</button>
-				<p style={{color:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""}}>
-					Colours = {colours ? `${colours[0]}, ${colours[1]}, ${colours[2]}`: ""}
-
+				<p>
+					RGB = {colours ? `(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""} <br></br>
+					HEX = {colours ? rgbToHex(colours[0],colours[1],colours[2]): ""}
 				</p>
+				<p style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", width:'40%', margin:'auto'}}>
+					COLOUR
+				</p>
+				<br></br>
 				{/* <p>
 					DEBUGGING <br></br>
 					XStart = {rectangle.x0} <br></br>

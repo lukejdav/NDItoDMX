@@ -1,6 +1,9 @@
 import React, {useCallback, useState, useRef, useEffect} from 'react'
 import './App.css'
 import { useInterval } from 'usehooks-ts';
+import 'bootstrap/dist/css/bootstrap.css';
+import {Container, Row, Col} from 'react-bootstrap';
+// import './custom.scss';
 
 var frameX: number = 1920;
 var frameY: number = 1080;
@@ -134,44 +137,52 @@ function NDIblock() {
 			</canvas>
 			<br></br>
 			<div className="Selection">
-				<table>
-					<tr>
-						<td><p>X Start</p></td>
-						<td>
+				<Container>
+					<Row>
+						<Col justify-content-end>
+							X Start
+						</Col>
+						<Col>
 							<input type="number" min="0" max={rectangle.x1} style={{ width: "100px" }}
 								onChange={updateX0}
 								value={rectangle.x0}
 							/>
-						</td>
-					</tr>
-					<tr>
-						<td><p>X End</p></td>
-						<td>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							X End
+						</Col>
+						<Col>
 							<input type="number" min={rectangle.x0} max={frameX - 1} style={{ width: "100px" }}
 								onChange={updateX1}
 								value={rectangle.x1}
 							/>
-						</td>
-					</tr>
-					<tr>
-						<td><p>Y Start</p></td>
-						<td>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							Y Start
+						</Col>
+						<Col>
 							<input type="number" min="0" max={rectangle.y1} style={{ width: "100px" }}
 								onChange={updateY0}
 								value={rectangle.y0}
 							/>
-						</td>
-					</tr>
-					<tr>
-						<td><p>Y End</p></td>
-						<td>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							Y End
+						</Col>
+						<Col>
 							<input type="number" min={rectangle.y0} max={frameY - 1} style={{ width: "100px" }}
 								onChange={updateY1}
 								value={rectangle.y1}
 							/>
-						</td>
-					</tr>
-				</table>
+						</Col>
+					</Row>
+				</Container>
 				<button onClick={() => rectangleReset()}>
 					Reset Rectangle
 				</button>

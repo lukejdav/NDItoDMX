@@ -4,6 +4,7 @@
   "description": "Converting video streams into useful DMX data",
   "main": "main.js",
   "scripts": {
+    "start": "ts-node main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +23,12 @@
     "express": "^4.18.2",
     "grandiose": "https://github.com/streampunk/grandiose/tarball/c350e0fb6e74bbf2e4b10144fee456aa1af93f47",
     "pngjs": "^7.0.0",
-    "react-bootstrap": "^2.9.1"
+    "react-bootstrap": "^2.9.1",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.5",
+    "@types/express": "^4.17.21",
+    "@types/pngjs": "^6.0.4"
   }
 }

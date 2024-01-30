@@ -23,8 +23,8 @@ interface Frame {
 let latestFrame: Frame | null = null
 let latestColours: number[] | null = null
 let latestAPIRange: RectangleCoordinates | null = null
-let previousAPIReceiver: string[] | null = null
-let latestAPIReceiver: string[] | null = null
+let previousAPIReceiver: string | null = null
+let latestAPIReceiver: string | null = null
 let latestNDISources: string[] = []
 let currentReceiver: grandiose.Receiver | null = null
 
@@ -51,7 +51,7 @@ app.post('/api/range', (req, res) => {
 })
 
 app.post('/api/reciever', (req, res) => {
-	latestAPIReceiver = req.body
+	latestAPIReceiver = req.body[0] || null
 	res.send("okay")
 })
 
@@ -139,7 +139,7 @@ async function updateReceiver() {
 
 	for (let i = 0; i < sources.length; i++) {
 		if (latestAPIReceiver != null) {
-			if (sources[i].name == latestAPIReceiver[0]) {
+			if (sources[i].name == latestAPIReceiver) {
 				index = i
 				break
 			}
@@ -243,7 +243,6 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 
 ; (async () => {
 	// Initialise
-	// Doesn't always run on first attempt, remains stable after first successful run.
 	getNDIStreams()
 	sendNDIStreams()
 	currentReceiver = await getFirstReceiver()
@@ -252,7 +251,6 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 	while (true) {
 		let startTime = new Date().getTime()
 		sendNDIStreams()
-		// receiver = await getReceiver(latestReceiver)
 
 		console.log("Debug:")
 		console.log("Latest Colours   : ", latestColours)
@@ -262,8 +260,6 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 		console.log("Latest Sources   : ", latestNDISources)
 
 		// only update receiver if it has changed
-		// not working?
-		// still way too slow
 		if (latestAPIReceiver == previousAPIReceiver) {
 			console.log("Still the same")
 		} else {
@@ -288,5 +284,14 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 
 		let endTime = new Date().getTime()
 		console.log("WHILE:", endTime - startTime)
+
+		const waitTime = 33 - (endTime - startTime)
+		if (waitTime > 0) {
+			await sleep(waitTime)
+		}
 	}
 })()
+
+async function sleep(duration: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, duration))
+}

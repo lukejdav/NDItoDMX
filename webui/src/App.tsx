@@ -113,6 +113,8 @@ function NDIblock() {
 
 	}, [rectangle, NDIframe])
 
+	// update for dynamic wait length
+	// TODO: batch the fetches so that the ui updates in sync
 	useInterval(()=> {
 		const image = new Image()
 		image.src = "/api/frame?t=" + Date.now()
@@ -140,13 +142,14 @@ function NDIblock() {
 			}
 		)
 
+		// TODO: Make this request when changing `NDIselection`
 		fetch("/api/reciever", {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify([NDIselection])
 		})
 
-	}, 2000)
+	}, 500)
 
 	return (
 		<div className="NDIcontainer">

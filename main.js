@@ -6,9 +6,9 @@ const port = 3000
 
 let latestFrame = null
 let latestColours = null
-let latestRange = null
-let previousReceiver = null
-let latestReceiver = null
+let latestAPIRange = null
+let previousAPIReceiver = null
+let latestAPIReceiver = null
 let latestNDISources = null
 let currentReceiver = null
 
@@ -26,12 +26,12 @@ app.get('/api/colours', (req, res) => {
 })
 
 app.post('/api/range', (req, res) => {
-	latestRange = req.body
+	latestAPIRange = req.body
 	res.send("okay")
 })
 
 app.post('/api/reciever', (req, res) => {
-	latestReceiver = req.body
+	latestAPIReceiver = req.body
 	res.send("okay")
 })
 
@@ -136,7 +136,7 @@ async function updateReceiver() {
 	const sources = finder.getCurrentSources()
 
 	for (let i = 0; i < sources.length; i++) {
-		if (sources[i].name == latestReceiver) {
+		if (sources[i].name == latestAPIReceiver) {
 			index = i
 			break
 		}
@@ -163,6 +163,7 @@ async function updateReceiver() {
 }
 
 // get a single frame from the slected NDI stream
+// seems to be the main cause of slow updates
 async function getFrame(receiver) {
 
 	let startTime = new Date().getTime()
@@ -241,8 +242,8 @@ function areaAverage(startX, endX, startY, endY, frame) {
 	// Doesn't always run on first attempt, remains stable after first successful run.
 	getNDIStreams()
 	sendNDIStreams()
-	currentReceiver = await getReceiver(latestReceiver)
-	previousReceiver = latestReceiver
+	currentReceiver = await getReceiver(latestAPIReceiver)
+	previousAPIReceiver = latestAPIReceiver
 
 	while (true) {
 		let startTime = new Date().getTime()
@@ -251,28 +252,28 @@ function areaAverage(startX, endX, startY, endY, frame) {
 
 		console.log("Debug:")
 		console.log("Latest Colours   : ", latestColours)
-		console.log("Latest Range     : ", latestRange)
-		console.log("Previous Receiver: ", previousReceiver)
-		console.log("Latest Receiver  : ", latestReceiver)
+		console.log("Latest Range     : ", latestAPIRange)
+		console.log("Previous Receiver: ", previousAPIReceiver)
+		console.log("Latest Receiver  : ", latestAPIReceiver)
 		console.log("Latest Sources   : ", latestNDISources)
 
 		// only update receiver if it has changed
 		// not working?
 		// still way too slow
-		if (latestReceiver === previousReceiver) {
+		if (latestAPIReceiver === previousAPIReceiver) {
 			console.log("Still the same")
 		} else {
 			console.log("UPDATING RECEIVER!!")
 			await updateReceiver()
-			previousReceiver = latestReceiver
+			previousAPIReceiver = latestAPIReceiver
 		}
 
 		await getFrame(currentReceiver).then(myFrame => {
 			if (myFrame) {
-				if (latestRange === null) {
+				if (latestAPIRange === null) {
 					latestColours = areaAverage(0, myFrame.width-1, 0, myFrame.height-1, myFrame)
 				} else {
-					latestColours = areaAverage(latestRange.x0, latestRange.x1, latestRange.y0, latestRange.y1, myFrame)
+					latestColours = areaAverage(latestAPIRange.x0, latestAPIRange.x1, latestAPIRange.y0, latestAPIRange.y1, myFrame)
 				}
 			}
 		})

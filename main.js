@@ -7,6 +7,8 @@ const port = 3000
 let latestFrame = null
 let latestColours = null
 let latestRange = null
+let latestReceiver = null
+let latestNDISources = null
 
 app.use(bodyParser.json())
 
@@ -26,6 +28,16 @@ app.post('/api/range', (req, res) => {
 	res.send("okay")
 })
 
+app.post('/api/reciever', (req, res) => {
+	latestReceiver = req.body
+	res.send("okay")
+})
+
+app.get('/api/NDISources', (req, res) => {
+	const buffer = latestNDISources
+	res.send(buffer)
+})
+
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })
@@ -42,7 +54,6 @@ function getImage() {
 // shows a list of avaliable streams and an index
 async function getNDIStreams() {
 	const grandiose = require('grandiose');
-
 	const finder = new grandiose.GrandioseFinder()
 
 	setTimeout(() => {
@@ -53,14 +64,45 @@ async function getNDIStreams() {
 	}, 1000)
 }
 
+async function sendNDIStreams() {
+	const grandiose = require('grandiose');
+	const finder = new grandiose.GrandioseFinder()
+
+	let allSources = []
+
+	setTimeout(() => {
+		const sources = finder.getCurrentSources()
+		for (let i = 0; i < sources.length; i++) {
+			allSources.push(sources[i].name)
+		}
+		if (allSources.length != 0) {
+			latestNDISources = allSources
+		}
+	}, 1000)
+
+}
+
 async function getReceiver(input) {
 	const grandiose = require('grandiose');
-
 	const finder = new grandiose.GrandioseFinder()
+
+	let index = 1
 
 	await new Promise(resolve => setTimeout(resolve, 1000))
 
-	let source = finder.getCurrentSources()[input]
+	setTimeout(() => {
+		const sources = finder.getCurrentSources()
+
+		for (let i = 0; i < sources.length; i++) {
+			console.log(sources[i].name)
+			if (sources[i].name == input) {
+				index = i
+				break
+			}
+		}
+	}, 1000)
+
+	let source = finder.getCurrentSources()[index]
 
 	const receiver = await grandiose.receive({
 		source: source,
@@ -149,10 +191,20 @@ function areaAverage(startX, endX, startY, endY, frame) {
 
 ; (async () => {
 	getNDIStreams()
+	sendNDIStreams()
 
-	const receiver = await getReceiver(1)
+	let receiver = await getReceiver(latestReceiver)
 
 	while (true) {
+		sendNDIStreams()
+		// receiver = await getReceiver(latestReceiver)
+
+		console.log("Debug:")
+		console.log("Latest Colours : ", latestColours)
+		console.log("Latest Range   : ", latestRange)
+		console.log("Latest Receiver: ", latestReceiver)
+		console.log("Latest Sources : ", latestNDISources)
+
 		await getFrame(receiver).then(myFrame => {
 			if (myFrame) {
 				if (latestRange === null) {

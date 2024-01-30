@@ -17,9 +17,12 @@ interface RectangleCoordinates {
 
 function NDIblock() {
 
-	const [rectangle, setRectangle] = useState<RectangleCoordinates>({ x0: 0, x1: frameX - 1, y0: 0, y1: frameY - 1 })
+	const [rectangle, setRectangle] = useState<RectangleCoordinates>({ x0: 100, x1: frameX - 100, y0: 100, y1: frameY - 100 })
 	const [NDIframe, setNDIframe] = useState<HTMLImageElement | null>(null)
 	const [colours, setColours] = useState<Number[] | null>(null)
+	const [NDIsources, setNDIsources] = useState<string[] | null>(null)
+	const [NDIselection, setNDIselection] = useState<string>("None")
+	const [debug, setDebug] = useState<string | null>(null)
 
 	const rectangleReset = () => setRectangle({ x0: 0, x1: frameX - 1, y0: 0, y1: frameY - 1 })
 
@@ -63,6 +66,11 @@ function NDIblock() {
 		})
 	}, [])
 
+	const updateNDIsource = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+		const newValue = String(e.target.value)
+		setNDIselection(newValue)
+	}, [])
+
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	const rgbToHex = (red:any, green:any, blue:any) => {
@@ -78,7 +86,6 @@ function NDIblock() {
 			return
 		}
 		const context = canvas.getContext('2d')
-		//Our first draw
 		if (context === null) {
 			return
 		}
@@ -125,6 +132,20 @@ function NDIblock() {
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify(rectangle)
 		})
+
+		fetch("/api/NDISources").then(
+			async (res) => {
+				const data = await res.json()
+				setNDIsources(data)
+			}
+		)
+
+		fetch("/api/reciever", {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify([NDIselection])
+		})
+
 	}, 2000)
 
 	return (
@@ -135,6 +156,28 @@ function NDIblock() {
 			<canvas ref={canvasRef} width={frameX/2} height={frameY/2}>
 				
 			</canvas>
+			<br></br>
+			<div>
+				<Container>
+					<Row>
+						<Col>
+							NDI Source: {"\u2003"}
+						</Col>
+						<Col>
+							<select name="sources" id="sources" style={{width: "100%"}} onChange={e => updateNDIsource(e)}>
+								<option value = 'None'> None </option>
+								{(NDIsources === null) ? "" : NDIsources.map((NDIsources, index) => {
+									return (
+										<option key={index}>
+											{NDIsources}
+										</option>
+									);
+								})}
+							</select>
+						</Col>
+					</Row>
+				</Container>
+			</div>
 			<br></br>
 			<div className="Selection">
 				<Container>
@@ -190,17 +233,11 @@ function NDIblock() {
 					RGB = {colours ? `(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""} <br></br>
 					HEX = {colours ? rgbToHex(colours[0],colours[1],colours[2]): ""}
 				</p>
-				<p style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", width:'40%', margin:'auto'}}>
-					COLOUR
-				</p>
+				<div style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", width:'40%', margin:'auto', minHeight:'40px'}}>
+				</div>
 				<br></br>
-				{/* <p>
-					DEBUGGING <br></br>
-					XStart = {rectangle.x0} <br></br>
-					XEnd = {rectangle.x1} <br></br>
-					YStart = {rectangle.y0} <br></br>
-					YEnd = {rectangle.y1}
-				</p> */}
+				<p>{debug}</p>
+				<p>{NDIselection}</p>
 			</div>
 		</div>
 	)

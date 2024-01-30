@@ -7,8 +7,10 @@ const port = 3000
 let latestFrame = null
 let latestColours = null
 let latestRange = null
+let previousReceiver = null
 let latestReceiver = null
 let latestNDISources = null
+let currentReceiver = null
 
 app.use(bodyParser.json())
 
@@ -52,6 +54,7 @@ function getImage() {
 }
 
 // shows a list of avaliable streams and an index
+// mainly used on initialisation for debugging
 async function getNDIStreams() {
 	const grandiose = require('grandiose');
 	const finder = new grandiose.GrandioseFinder()
@@ -64,6 +67,7 @@ async function getNDIStreams() {
 	}, 1000)
 }
 
+// updates the NDI streams in the API
 async function sendNDIStreams() {
 	const grandiose = require('grandiose');
 	const finder = new grandiose.GrandioseFinder()
@@ -82,27 +86,26 @@ async function sendNDIStreams() {
 
 }
 
+// used to get the receiver at initilisation
+// ensures receivers are present before sucessful running
 async function getReceiver(input) {
 	const grandiose = require('grandiose');
 	const finder = new grandiose.GrandioseFinder()
 
-	let index = 1
+	let index = 0
 
-	await new Promise(resolve => setTimeout(resolve, 1000))
+	await new Promise(resolve => {setTimeout(resolve, 1000)})
 
-	setTimeout(() => {
-		const sources = finder.getCurrentSources()
+	const sources = finder.getCurrentSources()
 
-		for (let i = 0; i < sources.length; i++) {
-			console.log(sources[i].name)
-			if (sources[i].name == input) {
-				index = i
-				break
-			}
+	for (let i = 0; i < sources.length; i++) {
+		if (sources[i].name == input) {
+			index = i
+			break
 		}
-	}, 1000)
+	}
 
-	let source = finder.getCurrentSources()[index]
+	let source = sources[index]
 
 	const receiver = await grandiose.receive({
 		source: source,
@@ -112,16 +115,57 @@ async function getReceiver(input) {
 		name: "main"
 	},);
 
-	let timeout = 1000;
-
 	// Hacky fix
+	let timeout = 1000;
 	await receiver.video(timeout).catch(() => null)
 
 	return receiver
 }
 
+// update the global latest receiver
+// will only update if it has successfully pulled sources
+// this is necessary for stability
+async function updateReceiver() {
+	const grandiose = require('grandiose');
+	const finder = new grandiose.GrandioseFinder()
+
+	let index = 0
+
+	await new Promise(resolve => {setTimeout(resolve, 1000)})
+
+	const sources = finder.getCurrentSources()
+
+	for (let i = 0; i < sources.length; i++) {
+		if (sources[i].name == latestReceiver) {
+			index = i
+			break
+		}
+	}
+
+	let source = sources[index]
+
+	if(typeof(source) != "undefined") {
+
+		const receiver = await grandiose.receive({
+			source: source,
+			colorFormat: grandiose.COLOR_FORMAT_RGBX_RGBA,
+			bandwidth: grandiose.BANDWIDTH_HIGHEST,
+			allowVideoFields: false,
+			name: "main"
+		},);
+
+		// Hacky fix
+		let timeout = 1000;
+		await receiver.video(timeout).catch(() => null)
+
+		currentReceiver = receiver
+	}
+}
+
 // get a single frame from the slected NDI stream
 async function getFrame(receiver) {
+
+	let startTime = new Date().getTime()
 
 	let timeout = 1000;
 
@@ -135,11 +179,15 @@ async function getFrame(receiver) {
 		latestFrame = myFrame
 		return myFrame
 	} catch (e) { console.error(e); }
+
+	let endTime = new Date().getTime()
+	console.log("FRAME:", endTime - startTime)
 }
 
-
 // takes a data frame of RGB vales, and width and height of frame
+// returns the average area of the frame
 function areaAverage(startX, endX, startY, endY, frame) {
+
 	if (startX == -1) {
 		startX = 0
 	}
@@ -182,7 +230,6 @@ function areaAverage(startX, endX, startY, endY, frame) {
 	blueTotal = Math.round(blueTotal / areaTotal)
 
 	return [redTotal, greenTotal, blueTotal]
-
 }
 
 // let [a, b, c] = areaAverage(-1, -1, -1, -1, getImage())
@@ -190,22 +237,37 @@ function areaAverage(startX, endX, startY, endY, frame) {
 // console.log(`Average is: ${a}, ${b}, ${c}`)
 
 ; (async () => {
+	// Initialise
+	// Doesn't always run on first attempt, remains stable after first successful run.
 	getNDIStreams()
 	sendNDIStreams()
-
-	let receiver = await getReceiver(latestReceiver)
+	currentReceiver = await getReceiver(latestReceiver)
+	previousReceiver = latestReceiver
 
 	while (true) {
+		let startTime = new Date().getTime()
 		sendNDIStreams()
 		// receiver = await getReceiver(latestReceiver)
 
 		console.log("Debug:")
-		console.log("Latest Colours : ", latestColours)
-		console.log("Latest Range   : ", latestRange)
-		console.log("Latest Receiver: ", latestReceiver)
-		console.log("Latest Sources : ", latestNDISources)
+		console.log("Latest Colours   : ", latestColours)
+		console.log("Latest Range     : ", latestRange)
+		console.log("Previous Receiver: ", previousReceiver)
+		console.log("Latest Receiver  : ", latestReceiver)
+		console.log("Latest Sources   : ", latestNDISources)
 
-		await getFrame(receiver).then(myFrame => {
+		// only update receiver if it has changed
+		// not working?
+		// still way too slow
+		if (latestReceiver === previousReceiver) {
+			console.log("Still the same")
+		} else {
+			console.log("UPDATING RECEIVER!!")
+			await updateReceiver()
+			previousReceiver = latestReceiver
+		}
+
+		await getFrame(currentReceiver).then(myFrame => {
 			if (myFrame) {
 				if (latestRange === null) {
 					latestColours = areaAverage(0, myFrame.width-1, 0, myFrame.height-1, myFrame)
@@ -214,5 +276,8 @@ function areaAverage(startX, endX, startY, endY, frame) {
 				}
 			}
 		})
+
+		let endTime = new Date().getTime()
+		console.log("WHILE:", endTime - startTime)
 	}
 })()

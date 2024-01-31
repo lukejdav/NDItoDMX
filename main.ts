@@ -7,6 +7,11 @@ const port = 3000
 import grandiose from 'grandiose'
 const finder = new grandiose.GrandioseFinder()
 
+let debug = false
+if(process.env.npm_config_debug) {
+	debug = true
+}
+
 interface RectangleCoordinates {
 	x0: number
 	x1: number
@@ -186,7 +191,9 @@ async function getFrame(receiver:grandiose.Receiver) {
 	} catch (e) { console.error(e); }
 
 	let endTime = new Date().getTime()
-	console.log("FRAME:", endTime - startTime)
+	if(debug) {
+		console.log("Get Frame :", endTime - startTime, "ms")
+	}
 }
 
 // takes a data frame of RGB vales, and width and height of frame
@@ -248,28 +255,44 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 	previousAPIReceiver = latestAPIReceiver
 
 	while (true) {
+		if(debug) {
+			console.log("\nDebugging for latest frame:")
+		}
+
 		let startTime = new Date().getTime()
 		sendNDIStreams()
 
-		console.log("Debug:")
-		console.log("Latest Colours   : ", latestColours)
-		console.log("Latest Range     : ", latestAPIRange)
-		console.log("Previous Receiver: ", previousAPIReceiver)
-		console.log("Latest Receiver  : ", latestAPIReceiver)
-		console.log("Latest Sources   : ", latestNDISources)
+		if(debug) {
+			console.log("Latest Colours   : ", latestColours)
+			if(latestFrame != null) {
+				console.log("Frame size       : ", latestFrame['width'], "x", latestFrame['height'])
+			} else {
+				console.log("Frame size       :  null")
+			}
+			console.log("Latest Range     : ", latestAPIRange)
+			console.log("Previous Receiver: ", previousAPIReceiver)
+			console.log("Latest Receiver  : ", latestAPIReceiver)
+			console.log("Latest Sources   : ", latestNDISources)
+		}
 
 		// only update receiver if it has changed
 		if (latestAPIReceiver == previousAPIReceiver) {
-			console.log("Still the same")
+			if(debug) {
+				console.log("NDI receiver still the same")
+			}
 		} else {
-			console.log("UPDATING RECEIVER!!")
+			if(debug) {
+				console.log("NDI receiver has been UPDATED")
+			}
 			await updateReceiver()
 			previousAPIReceiver = latestAPIReceiver
 		}
 
 		if (currentReceiver){
 			await getFrame(currentReceiver).then(myFrame => {
+				// ensures a frame has been received
 				if (myFrame) {
+					// ensures valid range is used
 					if (latestAPIRange === null) {
 						latestColours = areaAverage(0, myFrame.width-1, 0, myFrame.height-1, myFrame)
 					} else {
@@ -282,8 +305,11 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 		}
 
 		let endTime = new Date().getTime()
-		console.log("WHILE:", endTime - startTime)
+		if(debug) {
+			console.log("This frame:", endTime - startTime, "ms")
+		}
 
+		// throttle for 30fps
 		const waitTime = 33 - (endTime - startTime)
 		if (waitTime > 0) {
 			await sleep(waitTime)

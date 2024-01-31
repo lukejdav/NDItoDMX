@@ -205,7 +205,6 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 	if (endY == -1) {
 		endY = frame.height - 1
 	}
-	// console.log(startX, endX, startY, endY)
 	if (startX >= frame.width || endX >= frame.width || startY >= frame.height || endY >= frame.height) {
 		throw new Error("Area value overflow")
 	}

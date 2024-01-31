@@ -129,6 +129,7 @@ function NDIblock() {
 			}
 		)
 
+		// add a manual refresh button
 		fetch("/api/range", {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},

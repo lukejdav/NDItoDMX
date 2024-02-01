@@ -12,12 +12,6 @@ if(process.env.npm_config_debug) {
 	debug = true
 }
 
-let artnetOptions = {
-	host: "127.0.0.1"
-}
-
-let artnet = require('artnet')(artnetOptions)
-
 interface RectangleCoordinates {
 	x0: number
 	x1: number
@@ -38,6 +32,8 @@ let previousAPIReceiver: string | null = null
 let latestAPIReceiver: string | null = null
 let latestNDISources: string[] = []
 let currentReceiver: grandiose.Receiver | null = null
+let latestArtNetIP: string = "127.0.0.1"
+let latestChannel: number = 1
 
 app.use(bodyParser.json())
 
@@ -69,6 +65,16 @@ app.post('/api/reciever', (req, res) => {
 app.get('/api/NDISources', (req, res) => {
 	const buffer = latestNDISources
 	res.send(buffer)
+})
+
+app.post('/api/ArtNetIP', (req, res) => {
+	latestArtNetIP = String(req.body)
+	res.send("okay")
+})
+
+app.post('/api/ArtNetChannel', (req, res) => {
+	latestChannel = Number(req.body)
+	res.send("okay")
 })
 
 app.listen(port, () => {
@@ -249,6 +255,7 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 	return [redTotal, greenTotal, blueTotal]
 }
 
+
 // let [a, b, c] = areaAverage(-1, -1, -1, -1, getImage())
 
 // console.log(`Average is: ${a}, ${b}, ${c}`)
@@ -260,10 +267,18 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 	currentReceiver = await getFirstReceiver()
 	previousAPIReceiver = latestAPIReceiver
 
+	let artnet = require('artnet')({
+		host: latestArtNetIP
+	})
+
 	while (true) {
 		if(debug) {
 			console.log("\nDebugging for latest frame:")
 		}
+		
+		// artnet = require('artnet')({
+		// 	host: latestArtNetIP
+		// })
 
 		let startTime = new Date().getTime()
 		sendNDIStreams()
@@ -279,6 +294,8 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 			console.log("Previous Receiver: ", previousAPIReceiver)
 			console.log("Latest Receiver  : ", latestAPIReceiver)
 			console.log("Latest Sources   : ", latestNDISources)
+			console.log("Latest IP Address: ", latestArtNetIP)
+			console.log("Latest Channel   : ", latestChannel)
 		}
 
 		// only update receiver if it has changed
@@ -303,7 +320,7 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 						latestColours = areaAverage(0, myFrame.width-1, 0, myFrame.height-1, myFrame)
 					} else {
 						latestColours = areaAverage(latestAPIRange.x0, latestAPIRange.x1, latestAPIRange.y0, latestAPIRange.y1, myFrame)
-						artnet.set([latestColours[0], latestColours[1], latestColours[2]])
+						artnet.set(latestChannel, [latestColours[0], latestColours[1], latestColours[2]])
 					}
 				}
 			})

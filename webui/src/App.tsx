@@ -15,6 +15,13 @@ interface RectangleCoordinates {
 	y1: number
 }
 
+interface IPaddress {
+	octet1: number
+	octet2: number
+	octet3: number
+	octet4: number
+}
+
 function NDIblock() {
 
 	const [rectangle, setRectangle] = useState<RectangleCoordinates>({ x0: 100, x1: frameX - 100, y0: 100, y1: frameY - 100 })
@@ -22,6 +29,8 @@ function NDIblock() {
 	const [colours, setColours] = useState<Number[] | null>(null)
 	const [NDIsources, setNDIsources] = useState<string[] | null>(null)
 	const [NDIselection, setNDIselection] = useState<string>("None")
+	const [artnetIP, setArtnetIP] = useState<IPaddress>({octet1: 127, octet2: 0, octet3: 0, octet4: 1})
+	const [artnetChannel, setArtnetChannel] = useState<Number>(1)
 	const [debug, setDebug] = useState<string | null>(null)
 
 	const rectangleReset = () => setRectangle({ x0: 0, x1: frameX - 1, y0: 0, y1: frameY - 1 })
@@ -66,10 +75,77 @@ function NDIblock() {
 		})
 	}, [])
 
+	const updateOctet1 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = Number(e.target.value)
+		setArtnetIP((oldArtnetIP) => {
+			if (newValue <= 0 && newValue >= 255) {
+				return oldArtnetIP
+			}
+			return({ ...oldArtnetIP, octet1: newValue})
+		})
+	}, [])
+
+	const updateOctet2 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = Number(e.target.value)
+		setArtnetIP((oldArtnetIP) => {
+			if (newValue <= 0 && newValue >= 255) {
+				return oldArtnetIP
+			}
+			return({ ...oldArtnetIP, octet2: newValue})
+		})
+	}, [])
+
+	const updateOctet3 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = Number(e.target.value)
+		setArtnetIP((oldArtnetIP) => {
+			if (newValue <= 0 && newValue >= 255) {
+				return oldArtnetIP
+			}
+			return({ ...oldArtnetIP, octet3: newValue})
+		})
+	}, [])
+
+	const updateOctet4 = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = Number(e.target.value)
+		setArtnetIP((oldArtnetIP) => {
+			if (newValue <= 0 && newValue >= 255) {
+				return oldArtnetIP
+			}
+			return({ ...oldArtnetIP, octet4: newValue})
+		})
+	}, [])
+
+	const updateArtNetChannel = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = Number(e.target.value)
+		setArtnetChannel(newValue)
+	}, [])
+
 	const updateNDIsource = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newValue = String(e.target.value)
 		setNDIselection(newValue)
 	}, [])
+
+	const updateArtNetIP = () => {
+		if(artnetIP != null) {
+			const newValue = String(artnetIP.octet1+"."+artnetIP.octet2+"."+artnetIP.octet3+"."+artnetIP.octet4)
+			fetch("/api/ArtNetIP", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify([newValue])
+			})
+		}
+	}
+
+	const updateStartingChannel = () => {
+		if(artnetChannel != null) {
+			const newValue = String(artnetChannel)
+			fetch("/api/ArtNetChannel", {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify([newValue])
+			})
+		}
+	}
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -161,7 +237,7 @@ function NDIblock() {
 				
 			</canvas>
 			<br></br>
-			<div>
+			<div className="NDIsources">
 				<Container>
 					<Row>
 						<Col>
@@ -179,15 +255,18 @@ function NDIblock() {
 								})}
 							</select>
 						</Col>
+						<Col>
+								<button>Refresh Sources</button>
+						</Col>
 					</Row>
 				</Container>
 			</div>
 			<br></br>
-			<div className="AreaSelection">
+			<div className="areaSelection">
 				<Container>
 					<Row>
 						<Col justify-content-end>
-							X Start
+							X Start:
 						</Col>
 						<Col>
 							<input type="number" min="0" max={rectangle.x1} style={{ width: "100px" }}
@@ -198,7 +277,7 @@ function NDIblock() {
 					</Row>
 					<Row>
 						<Col>
-							X End
+							X End:
 						</Col>
 						<Col>
 							<input type="number" min={rectangle.x0} max={frameX - 1} style={{ width: "100px" }}
@@ -209,7 +288,7 @@ function NDIblock() {
 					</Row>
 					<Row>
 						<Col>
-							Y Start
+							Y Start:
 						</Col>
 						<Col>
 							<input type="number" min="0" max={rectangle.y1} style={{ width: "100px" }}
@@ -220,7 +299,7 @@ function NDIblock() {
 					</Row>
 					<Row>
 						<Col>
-							Y End
+							Y End:
 						</Col>
 						<Col>
 							<input type="number" min={rectangle.y0} max={frameY - 1} style={{ width: "100px" }}
@@ -229,19 +308,49 @@ function NDIblock() {
 							/>
 						</Col>
 					</Row>
+					<button onClick={() => rectangleReset()}>
+						Reset Rectangle
+					</button>
 				</Container>
-				<button onClick={() => rectangleReset()}>
-					Reset Rectangle
-				</button>
+			</div>
+			<div className="ArtNetSelection">
+				<Container>
+					<Row>
+						<Col>
+							IP Address: 
+						</Col>
+						<Col>
+							<input type="number" min={0} max={255} value={artnetIP.octet1} onChange={updateOctet1}/>.
+							<input type="number" min={0} max={255} value={artnetIP.octet2} onChange={updateOctet2}/>.
+							<input type="number" min={0} max={255} value={artnetIP.octet3} onChange={updateOctet3}/>.
+							<input type="number" min={0} max={255} value={artnetIP.octet4} onChange={updateOctet4}/>.
+						</Col>
+						<Col>
+							<button onClick={() => updateArtNetIP()}>Update IP Address</button>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							Starting Channel:
+						</Col>
+						<Col>
+							<input type="number" min={1} max={512} value={String(artnetChannel)} onChange={updateArtNetChannel}/>
+						</Col>
+						<Col>
+							<button onClick={() => updateStartingChannel()}>Update Starting Channel</button>
+						</Col>
+					</Row>
+				</Container>
+			</div>
+			<div className="colourFeedback">
 				<p>
 					RGB = {colours ? `(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""} <br></br>
 					HEX = {colours ? rgbToHex(colours[0],colours[1],colours[2]): ""}
 				</p>
 				<div style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", width:'40%', margin:'auto', minHeight:'40px'}}>
-				</div>
+			</div>
 				<br></br>
 				<p>{debug}</p>
-				<p>{NDIselection}</p>
 			</div>
 		</div>
 	)

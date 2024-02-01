@@ -183,7 +183,7 @@ function NDIblock() {
 				</Container>
 			</div>
 			<br></br>
-			<div className="Selection">
+			<div className="AreaSelection">
 				<Container>
 					<Row>
 						<Col justify-content-end>

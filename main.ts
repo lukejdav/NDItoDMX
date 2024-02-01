@@ -12,6 +12,12 @@ if(process.env.npm_config_debug) {
 	debug = true
 }
 
+let artnetOptions = {
+	host: "127.0.0.1"
+}
+
+let artnet = require('artnet')(artnetOptions)
+
 interface RectangleCoordinates {
 	x0: number
 	x1: number
@@ -297,6 +303,7 @@ function areaAverage(startX:number, endX:number, startY:number, endY:number, fra
 						latestColours = areaAverage(0, myFrame.width-1, 0, myFrame.height-1, myFrame)
 					} else {
 						latestColours = areaAverage(latestAPIRange.x0, latestAPIRange.x1, latestAPIRange.y0, latestAPIRange.y1, myFrame)
+						artnet.set([latestColours[0], latestColours[1], latestColours[2]])
 					}
 				}
 			})

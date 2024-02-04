@@ -1,9 +1,8 @@
 import React, {useCallback, useState, useRef, useEffect} from 'react'
 import './App.css'
 import { useInterval } from 'usehooks-ts';
-import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import {Container, Row, Col} from 'react-bootstrap';
-// import './custom.scss';
 
 var frameX: number = 1920;
 var frameY: number = 1080;
@@ -229,19 +228,17 @@ function NDIblock() {
 	}, 500)
 
 	return (
-		<div className="NDIcontainer">
-
-			<h1>Draw a box</h1>
-			
-			<canvas ref={canvasRef} width={frameX/2} height={frameY/2}>
-				
-			</canvas>
-			<br></br>
+		<div className="Main">
+			<h1>NDI to DMX</h1>
+			<div className="NDICanvas">
+				<canvas ref={canvasRef} width={Math.min(window.innerWidth,1600)} height={Math.min(window.innerWidth/16*9,900)}>
+				</canvas>
+			</div>
 			<div className="NDIsources">
 				<Container>
 					<Row>
 						<Col>
-							NDI Source: {"\u2003"}
+							<p>NDI Source:</p>
 						</Col>
 						<Col>
 							<select name="sources" id="sources" style={{width: "100%"}} onChange={e => updateNDIsource(e)}>
@@ -256,19 +253,18 @@ function NDIblock() {
 							</select>
 						</Col>
 						<Col>
-								<button>Refresh Sources</button>
+							<button>Refresh Sources</button>
 						</Col>
 					</Row>
 				</Container>
 			</div>
-			<br></br>
 			<div className="areaSelection">
 				<Container>
 					<Row>
-						<Col justify-content-end>
-							X Start:
+						<Col style={{display:'flex', justifyContent:'right'}}>
+							Start X:
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left'}}>
 							<input type="number" min="0" max={rectangle.x1} style={{ width: "100px" }}
 								onChange={updateX0}
 								value={rectangle.x0}
@@ -276,10 +272,10 @@ function NDIblock() {
 						</Col>
 					</Row>
 					<Row>
-						<Col>
-							X End:
+						<Col style={{display:'flex', justifyContent:'right'}}>
+							End X:
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left'}}>
 							<input type="number" min={rectangle.x0} max={frameX - 1} style={{ width: "100px" }}
 								onChange={updateX1}
 								value={rectangle.x1}
@@ -287,10 +283,10 @@ function NDIblock() {
 						</Col>
 					</Row>
 					<Row>
-						<Col>
-							Y Start:
+						<Col style={{display:'flex', justifyContent:'right'}}>
+							Start Y:
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left'}}>
 							<input type="number" min="0" max={rectangle.y1} style={{ width: "100px" }}
 								onChange={updateY0}
 								value={rectangle.y0}
@@ -298,10 +294,10 @@ function NDIblock() {
 						</Col>
 					</Row>
 					<Row>
-						<Col>
-							Y End:
+						<Col style={{display:'flex', justifyContent:'right'}}>
+							End Y:
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left'}}>
 							<input type="number" min={rectangle.y0} max={frameY - 1} style={{ width: "100px" }}
 								onChange={updateY1}
 								value={rectangle.y1}
@@ -315,42 +311,50 @@ function NDIblock() {
 			</div>
 			<div className="ArtNetSelection">
 				<Container>
-					<Row>
-						<Col>
+					<Row class="align-items-center">
+						<Col style={{display:'flex', justifyContent:'right', alignItems:"center"}}>
 							IP Address: 
 						</Col>
-						<Col>
-							<input type="number" min={0} max={255} value={artnetIP.octet1} onChange={updateOctet1}/>.
-							<input type="number" min={0} max={255} value={artnetIP.octet2} onChange={updateOctet2}/>.
-							<input type="number" min={0} max={255} value={artnetIP.octet3} onChange={updateOctet3}/>.
-							<input type="number" min={0} max={255} value={artnetIP.octet4} onChange={updateOctet4}/>.
+						<Col style={{display:'flex', justifyContent:'center', alignItems:"center"}}>
+							<div className="IPaddress">
+								<input type="number" min={0} max={255} value={artnetIP.octet1} onChange={updateOctet1}/>.
+								<input type="number" min={0} max={255} value={artnetIP.octet2} onChange={updateOctet2}/>.
+								<input type="number" min={0} max={255} value={artnetIP.octet3} onChange={updateOctet3}/>.
+								<input type="number" min={0} max={255} value={artnetIP.octet4} onChange={updateOctet4}/>
+							</div>
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left', alignItems:"center"}}>
 							<button onClick={() => updateArtNetIP()}>Update IP Address</button>
 						</Col>
 					</Row>
 					<Row>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'right', alignItems:"center"}}>
 							Starting Channel:
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'center', alignItems:"center"}}>
 							<input type="number" min={1} max={512} value={String(artnetChannel)} onChange={updateArtNetChannel}/>
 						</Col>
-						<Col>
+						<Col style={{display:'flex', justifyContent:'left', alignItems:"center"}}>
 							<button onClick={() => updateStartingChannel()}>Update Starting Channel</button>
 						</Col>
 					</Row>
 				</Container>
 			</div>
 			<div className="colourFeedback">
-				<p>
-					RGB = {colours ? `(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""} <br></br>
-					HEX = {colours ? rgbToHex(colours[0],colours[1],colours[2]): ""}
-				</p>
-				<div style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", width:'40%', margin:'auto', minHeight:'40px'}}>
-			</div>
-				<br></br>
-				<p>{debug}</p>
+				<Container>
+					<Row>
+						<Col>
+							RGB = {colours ? `(${colours[0]}, ${colours[1]}, ${colours[2]})`: ""} <br></br>
+						</Col>
+						<Col>
+							HEX = {colours ? rgbToHex(colours[0],colours[1],colours[2]): ""}
+						</Col>
+					</Row>
+					<Row>
+						<div className="colourBox" style={{backgroundColor:colours ? `rgb(${colours[0]}, ${colours[1]}, ${colours[2]})`: "", minHeight: '40px'}}></div>
+					</Row>
+				</Container>
+				{/* <p>{debug}</p> */}
 			</div>
 		</div>
 	)

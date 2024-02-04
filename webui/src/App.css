@@ -1,0 +1,51 @@
+#root {
+	margin: auto;
+	text-align: center;
+	background-color: black;
+}
+
+h1 {
+    font-size: 10cqw !important;
+}
+
+.row {
+    padding: 2px;
+}
+
+.Main {
+	display: inline-block;
+	background: grey;
+}
+
+.NDIcanvas {
+	max-height: 200px;
+}
+
+.NDIsources {
+    padding: 20px;
+    border: solid;
+    border-color: black;
+}
+
+.areaSelection {
+    padding: 20px;
+    border: solid;
+    border-color: black;
+}
+
+.ArtNetSelection {
+    padding: 20px;
+    border: solid;
+    border-color: black;
+    padding-top: 5px;
+}
+
+.IPaddress {
+    width: 240px;
+    margin: auto;
+}
+
+.colourFeedback {
+    padding: 10px;
+    border: solid;
+}
